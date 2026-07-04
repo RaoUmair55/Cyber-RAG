@@ -1,0 +1,60 @@
+/* ---- Design tokens ---------------------------------------------------
+   Subject: a threat-intelligence console a SOC analyst queries in plain
+   English. Palette reads as instrument-panel, not chat-app: graphite
+   base, amber for the active query/prompt, phosphor green reserved for
+   confirmed matches (retrieval hits), red reserved only for severity.
+------------------------------------------------------------------------- */
+:root {
+  --bg: #0a0e0d;
+  --panel: #101513;
+  --panel-alt: #151b19;
+  --border: #223029;
+  --border-soft: #1a2420;
+  --text: #e7ece8;
+  --text-muted: #7e8d86;
+  --text-faint: #4d5a54;
+  --amber: #f0a93b;
+  --amber-dim: #7a5c26;
+  --green: #5fd98a;
+  --green-dim: #2c4534;
+  --red: #e5484d;
+
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  --font-body: 'Inter', -apple-system, sans-serif;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font-family: inherit; }
+
+::selection { background: var(--amber-dim); color: var(--text); }
+
+*:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
