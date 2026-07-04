@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Vault from './Vault.jsx'
+import MarkdownMessage from './MarkdownMessage.jsx'
 import './App.css'
 
 const API_BASE = 'http://localhost:8000'
@@ -99,9 +100,10 @@ export default function CyberMode({ mode, setMode }) {
           </div>
         </div>
 
-        <div className="mode-switch">
-          <button className={`mode-btn ${mode === 'cyber' ? 'active' : ''}`} onClick={() => setMode('cyber')}>Cyber Mode</button>
-          <button className={`mode-btn ${mode === 'assistant' ? 'active' : ''}`} onClick={() => setMode('assistant')}>Assistant Mode</button>
+        <div className="mode-switch mode-switch-3">
+          <button className={`mode-btn ${mode === 'cyber' ? 'active' : ''}`} onClick={() => setMode('cyber')}>Cyber</button>
+          <button className={`mode-btn ${mode === 'assistant' ? 'active' : ''}`} onClick={() => setMode('assistant')}>Assistant</button>
+          <button className={`mode-btn ${mode === 'super' ? 'active' : ''}`} onClick={() => setMode('super')}>Super</button>
         </div>
 
         <div>
@@ -204,7 +206,9 @@ export default function CyberMode({ mode, setMode }) {
           {messages.map((m, i) => (
             <div className={`msg ${m.role}`} key={i}>
               <div className="msg-label">{m.role === 'user' ? 'query' : 'response'}</div>
-              <div className="msg-bubble">{m.text}</div>
+              <div className="msg-bubble">
+                {m.role === 'assistant' ? <MarkdownMessage content={m.text} /> : m.text}
+              </div>
               {m.sources && m.sources.length > 0 && (
                 <div className="sources">
                   <div className="sources-label">Matched records ({m.sources.length})</div>

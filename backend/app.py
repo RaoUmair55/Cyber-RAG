@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from backend.rag import answer_question, semantic_search, get_collection
 from backend import kb
 from backend import memory
+from backend import super_assistant
 
 app = FastAPI(title="Cyber-RAG API", version="1.0.0")
 
@@ -248,3 +249,18 @@ def memory_files():
 def memory_delete_file(filename: str):
     deleted = memory.delete_file(filename)
     return {"filename": filename, "chunks_deleted": deleted}
+
+
+# ---------------------------------------------------------------------
+# Super Assistant — one chat, searches everything (attack dataset,
+# Vault, memory, uploaded documents) and blends whatever's relevant.
+# ---------------------------------------------------------------------
+
+@app.post("/super/chat")
+def super_chat(req: ChatRequest):
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="message cannot be empty.")
+    try:
+        return super_assistant.chat(req.message, history=req.history)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))

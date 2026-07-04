@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
+import MarkdownMessage from './MarkdownMessage.jsx'
 
 const API_BASE = 'http://localhost:8000'
 
-function MemoryPanel({ refreshKey, onChanged }) {
+export function MemoryPanel({ refreshKey, onChanged }) {
   const [items, setItems] = useState([])
   const [teachText, setTeachText] = useState('')
   const [files, setFiles] = useState([])
@@ -164,9 +165,10 @@ export default function AssistantMode({ mode, setMode }) {
           </div>
         </div>
 
-        <div className="mode-switch">
-          <button className={`mode-btn ${mode === 'cyber' ? 'active' : ''}`} onClick={() => setMode('cyber')}>Cyber Mode</button>
-          <button className={`mode-btn ${mode === 'assistant' ? 'active' : ''}`} onClick={() => setMode('assistant')}>Assistant Mode</button>
+        <div className="mode-switch mode-switch-3">
+          <button className={`mode-btn ${mode === 'cyber' ? 'active' : ''}`} onClick={() => setMode('cyber')}>Cyber</button>
+          <button className={`mode-btn ${mode === 'assistant' ? 'active' : ''}`} onClick={() => setMode('assistant')}>Assistant</button>
+          <button className={`mode-btn ${mode === 'super' ? 'active' : ''}`} onClick={() => setMode('super')}>Super</button>
         </div>
 
         <div>
@@ -208,7 +210,9 @@ export default function AssistantMode({ mode, setMode }) {
           {messages.map((m, i) => (
             <div className={`msg ${m.role}`} key={i}>
               <div className="msg-label">{m.role === 'user' ? 'you' : 'assistant'}</div>
-              <div className="msg-bubble">{m.text}</div>
+              <div className="msg-bubble">
+                {m.role === 'assistant' ? <MarkdownMessage content={m.text} /> : m.text}
+              </div>
               {m.remembered && m.remembered.length > 0 && (
                 <div className="sources">
                   <div className="sources-label vault-sources-label">Remembered from this</div>

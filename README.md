@@ -118,6 +118,35 @@ New endpoints: `/assistant/chat`, `/memory/teach`, `/memory/list`,
 
 No new setup — same `chroma_db/`, same Groq key, just restart uvicorn.
 
+## Phase 7 — Super Assistant (everything combined)
+
+A third mode that searches all four knowledge sources at once — attack
+dataset, Vault, memory, and uploaded documents — and blends whatever's
+actually relevant, so you don't have to pick a mode first. Ask about an
+attack, a tool you uploaded docs for, your own notes, or just talk
+normally; it figures out which sources apply per question.
+
+Uses a **relevance floor** (similarity ≥ 0.25) so it doesn't force
+irrelevant context into every answer — if nothing stored is relevant, it
+just answers from general knowledge and says so.
+
+New endpoint: `/super/chat`. Same auto-memory growth as Assistant Mode.
+No new setup needed.
+
+### Adding tool docs (e.g. nmap)
+
+Upload via the Memory tab (works in Assistant Mode or Super Mode — same
+`documents` collection either way):
+
+```bash
+man nmap > nmap_docs.txt
+```
+
+Then upload `nmap_docs.txt` through the Memory tab's "+ upload file"
+button. It gets chunked and embedded, and Super Assistant (or Assistant
+Mode) will pull the relevant sections when you ask nmap-specific
+questions.
+
 ## Project structure
 
 ```

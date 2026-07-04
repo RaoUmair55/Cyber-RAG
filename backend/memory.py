@@ -275,7 +275,9 @@ ASSISTANT_SYSTEM_PROMPT = """You are the user's personal AI assistant. You have 
 memory of facts about them (below, if any) and access to documents they've uploaded. Use \
 this context naturally, the way someone who knows the person well would — don't announce \
 that you're "retrieving memory," just use it. If the context doesn't cover the question, \
-answer from general knowledge and say so. Be concise and direct."""
+answer from general knowledge and say so. Be concise and direct. Format responses in \
+markdown when it aids clarity — headers for sections, bullet/numbered lists for steps, \
+fenced code blocks for any code or commands, tables for comparisons."""
 
 
 def chat(message: str, history: list[dict] = None) -> dict:
