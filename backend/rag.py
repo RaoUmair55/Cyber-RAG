@@ -115,20 +115,39 @@ def ask_groq(question: str, context: str) -> str:
     return completion.choices[0].message.content
 
 
-def answer_question(question: str, top_k: int = 5, where: dict | None = None) -> dict:
+def answer_question(question: str, top_k: int = 5, where: dict | None = None, include_vault: bool = True) -> dict:
     """
     Full RAG pipeline: retrieve -> build context -> generate grounded answer.
+    If include_vault is True, also pulls relevant entries from your personal
+    Vault (backend/kb.py) so past notes/commands surface alongside the
+    public dataset — e.g. "here's how SQLi works, and here's the payload
+    you used last time."
     Returns the answer plus the source records used, for citation in the UI.
     """
     hits = semantic_search(question, top_k=top_k, where=where)
 
-    if not hits:
+    vault_hits = []
+    if include_vault:
+        try:
+            from backend import kb
+            vault_hits = kb.search_entries(question, top_k=3)
+        except Exception:
+            vault_hits = []
+
+    if not hits and not vault_hits:
         return {
             "answer": "I couldn't find any relevant attacks in the dataset for this question.",
             "sources": [],
+            "vault_sources": [],
         }
 
     context = build_context(hits)
+    if vault_hits:
+        vault_block = "\n\n---\n\n".join(
+            f"[Your Vault: {v['type']}] {v['title']}\n{v['content']}" for v in vault_hits
+        )
+        context = f"{context}\n\n=== Your personal notes on related topics ===\n\n{vault_block}" if context else vault_block
+
     answer = ask_groq(question, context)
 
     sources = [
@@ -140,8 +159,12 @@ def answer_question(question: str, top_k: int = 5, where: dict | None = None) ->
         }
         for h in hits
     ]
+    vault_sources = [
+        {"title": v["title"], "type": v["type"], "similarity": v["similarity"]}
+        for v in vault_hits
+    ]
 
-    return {"answer": answer, "sources": sources}
+    return {"answer": answer, "sources": sources, "vault_sources": vault_sources}
 
 
 if __name__ == "__main__":

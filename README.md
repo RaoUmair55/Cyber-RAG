@@ -88,6 +88,36 @@ This is 100% local — stored in `chroma_db/` on your machine, nothing
 synced anywhere. No setup needed beyond what you already did; the new
 `/kb/*` endpoints are part of the same FastAPI server.
 
+## Phase 6 — Assistant Mode + growing memory
+
+A second **mode** (not just a tab) — switch between Cyber Mode and
+Assistant Mode from the sidebar. Assistant Mode is a general-purpose
+personal assistant with its own long-term memory that grows as you use it.
+
+**Important — how "learning" actually works here:** this does not retrain
+the underlying LLM (Llama on Groq). No personal project retrains a
+foundation model — that's what Anthropic/OpenAI do in massive offline runs.
+What actually happens, and what "ChatGPT/Claude feeling smarter over time"
+really is: **memory + retrieval**. Facts get saved, then retrieved and fed
+back into context on future questions. That's exactly what's built here:
+
+- **Auto-remembering** — after each exchange in Assistant Mode, Groq checks
+  whether anything durable is worth keeping (a preference, a project, a
+  deadline) and saves it if so — same idea as how I (Claude) build memory
+  of you across conversations.
+- **Manual teaching** — type something directly into the Memory tab and
+  it's saved immediately.
+- **File uploads** — drop in `.txt`, `.md`, `.py`, `.js`, `.json`, `.csv`
+  files; they get chunked and embedded so you can ask questions about them
+  later.
+- **Cyber Mode also got smarter** — `/ask` now pulls from your Vault too,
+  so answers can surface your own past notes alongside the dataset.
+
+New endpoints: `/assistant/chat`, `/memory/teach`, `/memory/list`,
+`/memory/{id}` (DELETE), `/memory/upload`, `/memory/files`.
+
+No new setup — same `chroma_db/`, same Groq key, just restart uvicorn.
+
 ## Project structure
 
 ```

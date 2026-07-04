@@ -8,12 +8,13 @@ Run with:
 from collections import Counter
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.rag import answer_question, semantic_search, get_collection
 from backend import kb
+from backend import memory
 
 app = FastAPI(title="Cyber-RAG API", version="1.0.0")
 
@@ -179,3 +180,71 @@ def kb_search(q: str = Query(..., min_length=1), top_k: int = 8,
 @app.get("/kb/list")
 def kb_list(type: Optional[str] = None, phase: Optional[str] = None, limit: int = 50):
     return {"results": kb.list_entries(entry_type=type, phase=phase, limit=limit)}
+
+
+# ---------------------------------------------------------------------
+# Assistant Mode — general-purpose personal assistant with growing
+# long-term memory (auto-extracted facts + manual teaching + uploaded
+# files). Separate collections from both the attack dataset and Vault.
+# ---------------------------------------------------------------------
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list = []   # [{role: "user"|"assistant", content: str}, ...]
+
+
+class TeachRequest(BaseModel):
+    text: str
+
+
+@app.post("/assistant/chat")
+def assistant_chat(req: ChatRequest):
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="message cannot be empty.")
+    try:
+        return memory.chat(req.message, history=req.history)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/memory/teach")
+def memory_teach(req: TeachRequest):
+    try:
+        return memory.add_memory(req.text, source="manual")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/memory/list")
+def memory_list(limit: int = 100):
+    return {"results": memory.list_memory(limit=limit)}
+
+
+@app.delete("/memory/{entry_id}")
+def memory_delete(entry_id: str):
+    memory.delete_memory(entry_id)
+    return {"deleted": entry_id}
+
+
+@app.post("/memory/upload")
+async def memory_upload(file: UploadFile = File(...)):
+    raw = await file.read()
+    try:
+        text = raw.decode("utf-8", errors="ignore")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not read file as text.")
+    try:
+        return memory.ingest_file(file.filename, text)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/memory/files")
+def memory_files():
+    return {"results": memory.list_files()}
+
+
+@app.delete("/memory/files/{filename}")
+def memory_delete_file(filename: str):
+    deleted = memory.delete_file(filename)
+    return {"filename": filename, "chunks_deleted": deleted}
